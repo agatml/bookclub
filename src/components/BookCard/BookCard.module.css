@@ -1,0 +1,15 @@
+.card {
+  background: white;
+  border-radius: 12px;
+  padding: 12px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  display: flex;
+  gap: 12px;
+}
+
+.card img {
+  width: 90px;
+  height: 130px;
+  object-fit: cover;
+  border-radius: 8px;
+}
