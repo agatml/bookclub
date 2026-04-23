@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { apiFetch } from "@/services/api";
 
+
 type Props = {
   fechar: () => void;
   onCreated: () => void;
@@ -28,21 +29,34 @@ export default function GeneroModal({ fechar, onCreated }: Props) {
   }
 
   return (
-    <form onSubmit={criarGenero}>
-      <input
-        placeholder="Nome"
-        value={nome}
-        onChange={(e) => setNome(e.target.value)}
-        required
-      />
+    <div className="modal-overlay" onClick={fechar}>
+      <div className="modal" onClick={(e) => e.stopPropagation()}>
+        <h2>Novo Gênero</h2>
 
-      <input
-        placeholder="Descrição"
-        value={descricao}
-        onChange={(e) => setDescricao(e.target.value)}
-      />
+        <form onSubmit={criarGenero}>
+          <input
+            type="text"
+            placeholder="Nome do gênero"
+            value={nome}
+            onChange={(e) => setNome(e.target.value)}
+            required
+          />
 
-      <button type="submit">Salvar</button>
-    </form>
+          <input
+            type="text"
+            placeholder="Descrição"
+            value={descricao}
+            onChange={(e) => setDescricao(e.target.value)}
+          />
+
+          <div style={{ marginTop: 10 }}>
+            <button type="submit">Salvar</button>
+            <button type="button" onClick={fechar}>
+              Cancelar
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
   );
 }

@@ -39,7 +39,7 @@ export default function BookModal({ fechar, onCreated }: Props) {
       alert("Faça login para cadastrar livros");
       return;
     }
-    
+
     e.preventDefault();
 
     await apiFetch("/livros",
@@ -62,68 +62,71 @@ export default function BookModal({ fechar, onCreated }: Props) {
   }
 
   return (
-    <div style={overlay}>
-      <form style={modal} onSubmit={criarLivro}>
-        <h2>Novo Livro</h2>
+    <div className="modal-overlay" onClick={fechar}>
+      <div className="modal" onClick={(e) => e.stopPropagation()}>
+        <form style={modal} onSubmit={criarLivro}>
+          <h2>Novo Livro</h2>
 
-        <input
-          placeholder="Título"
-          value={titulo}
-          onChange={(e) => setTitulo(e.target.value)}
-          required
-        />
+          <input
+            placeholder="Título"
+            value={titulo}
+            onChange={(e) => setTitulo(e.target.value)}
+            required
+          />
 
-        <input
-          placeholder="Autor"
-          value={autor}
-          onChange={(e) => setAutor(e.target.value)}
-          required
-        />
+          <input
+            placeholder="Autor"
+            value={autor}
+            onChange={(e) => setAutor(e.target.value)}
+            required
+          />
 
 
-        <select
-          value={genero_id}
-          onChange={(e) => setGenero(e.target.value)}
-          required
-        >
-          <option value="">Selecione um gênero</option>
+          <select
+            value={genero_id}
+            onChange={(e) => setGenero(e.target.value)}
+            required
+          >
+            <option value="">Selecione um gênero</option>
 
-          {generos.map((g) => (
-            <option key={g.id} value={g.id}>
-              {g.nome}
-            </option>
-          ))}
-        </select>
+            {generos.map((g) => (
+              <option key={g.id} value={g.id}>
+                {g.nome}
+              </option>
+            ))}
+          </select>
 
-        <input
-          placeholder="URL da capa"
-          value={capa_url}
-          onChange={(e) => setCapa(e.target.value)}
-          required
-        />
+          <input
+            placeholder="URL da capa"
+            value={capa_url}
+            onChange={(e) => setCapa(e.target.value)}
+            required
+          />
 
-        <input
-          type="number"
-          placeholder="Ano de publicação"
-          value={ano}
-          onChange={(e) => setAno(e.target.value)}
-          required
-        />
+          <input
+            type="number"
+            placeholder="Ano de publicação"
+            value={ano}
+            onChange={(e) => setAno(e.target.value)}
+            required
+          />
 
-        <textarea
-          placeholder="Sinopse"
-          value={sinopse}
-          onChange={(e) => setSinopse(e.target.value)}
-          required
-        />
+          <textarea
+            placeholder="Sinopse"
+            value={sinopse}
+            onChange={(e) => setSinopse(e.target.value)}
+            required
+          />
 
-        <button type="submit">Salvar</button>
+          <button type="submit">Salvar</button>
 
-        <button type="button" onClick={fechar}>
-          Cancelar
-        </button>
-      </form>
+          <button type="button" onClick={fechar}>
+            Cancelar
+          </button>
+        </form>
+      </div>
     </div>
+
   );
 }
 

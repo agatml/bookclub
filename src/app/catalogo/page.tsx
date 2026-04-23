@@ -6,12 +6,11 @@ import BookCard from "@/components/BookCard/BookCard";
 import BookModal from "@/components/BookModal/BookModal";
 import GeneroModal from "@/components/GeneroModal/GeneroModal";
 
+
 import { Livro } from "@/types/livros";
 import { Genero } from "@/types/generos";
 
-
 export default function Catalogo() {
-
   const [livros, setLivros] = useState<Livro[]>([]);
   const [generos, setGeneros] = useState<Genero[]>([]);
 
@@ -20,8 +19,6 @@ export default function Catalogo() {
 
   const [abrirModal, setAbrirModal] = useState(false);
   const [abrirGenero, setAbrirGenero] = useState(false);
-
-
 
   async function carregarLivros() {
     const data = await apiFetch<Livro[]>("/livros");
@@ -42,7 +39,6 @@ export default function Catalogo() {
     generos.map((g) => [g.id, g.nome])
   );
 
-
   const livrosFiltrados = livros.filter((livro) => {
     const matchBusca =
       livro.titulo.toLowerCase().includes(busca.toLowerCase()) ||
@@ -55,11 +51,9 @@ export default function Catalogo() {
     return matchBusca && matchGenero;
   });
 
-
   return (
     <main style={{ padding: 20 }}>
       <h1>Catálogo</h1>
-
 
       <div style={{ marginBottom: 20 }}>
         <button onClick={() => setAbrirModal(true)}>+ Livro</button>
@@ -71,7 +65,6 @@ export default function Catalogo() {
           + Novo Gênero
         </button>
       </div>
-
 
       <input
         type="text"
@@ -86,7 +79,6 @@ export default function Catalogo() {
         }}
       />
 
-
       <select
         value={generoSelecionado}
         onChange={(e) => setGeneroSelecionado(e.target.value)}
@@ -100,7 +92,6 @@ export default function Catalogo() {
         ))}
       </select>
 
-
       <div className="grid">
         {livrosFiltrados.map((livro) => (
           <BookCard
@@ -111,21 +102,27 @@ export default function Catalogo() {
         ))}
       </div>
 
-
+      
       {abrirModal && (
         <BookModal
           fechar={() => setAbrirModal(false)}
-          onCreated={carregarLivros}
+          onCreated={() => {
+            carregarLivros();
+            setAbrirModal(false);
+          }}
         />
       )}
 
+      
       {abrirGenero && (
         <GeneroModal
           fechar={() => setAbrirGenero(false)}
-          onCreated={carregarGeneros}
+          onCreated={() => {
+            carregarGeneros();
+            setAbrirGenero(false);
+          }}
         />
       )}
     </main>
   );
-
 }
