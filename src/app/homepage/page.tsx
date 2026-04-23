@@ -6,6 +6,7 @@ import { getFeed } from "@/services/feed.service";
 import { getRanking } from "@/services/ranking.service";
 import { getLivroDoMes, votar } from "@/services/votos.service";
 import Link from "next/link";
+import { RouteGuard } from "@/components/RouteGuard";
 
 export default function HomePage() {
   const { usuario, loading } = useUser();
@@ -110,6 +111,7 @@ export default function HomePage() {
   const livroDoMesVotos = livroMes?.total_votos || 0;
 
   return (
+    <RouteGuard>
     <main style={{ padding: 20, maxWidth: 1200, margin: "0 auto" }}>
       <h1>Olá, {usuario.nome} 👋</h1>
 
@@ -266,6 +268,7 @@ export default function HomePage() {
         </div>
       )}
     </main>
+    </RouteGuard>
   );
 }
 

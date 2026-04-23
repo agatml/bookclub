@@ -7,6 +7,7 @@ import { Livro } from "@/types/livros";
 import { Avaliacao } from "@/types/avaliacoes";
 import { useUser } from "@/contexts/UserContext";
 import { votar } from "@/services/votos.service";
+import { RouteGuard } from "@/components/RouteGuard";
 
 
 export default function LivroPage() {
@@ -110,6 +111,7 @@ const { usuario } = useUser();
 
 
   return (
+     <RouteGuard>
     <main style={{ padding: 20, maxWidth: 800, margin: "0 auto" }}>
       {/* INFO DO LIVRO */}
       <div style={{ display: "flex", gap: 20 }}>
@@ -186,5 +188,6 @@ const { usuario } = useUser();
         ))
       )}
     </main>
+     </RouteGuard>
   );
 }

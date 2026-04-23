@@ -5,6 +5,7 @@ import { apiFetch } from "@/services/api";
 import BookCard from "@/components/BookCard/BookCard";
 import BookModal from "@/components/BookModal/BookModal";
 import GeneroModal from "@/components/GeneroModal/GeneroModal";
+import { RouteGuard } from "@/components/RouteGuard";
 
 
 import { Livro } from "@/types/livros";
@@ -52,7 +53,9 @@ export default function Catalogo() {
   });
 
   return (
-    <main style={{ padding: 20 }}>
+    <RouteGuard>
+      <main style={{ padding: 20 }}>
+    
       <h1>Catálogo</h1>
 
       <div style={{ marginBottom: 20 }}>
@@ -123,6 +126,8 @@ export default function Catalogo() {
           }}
         />
       )}
+   
     </main>
+    </RouteGuard>
   );
 }
