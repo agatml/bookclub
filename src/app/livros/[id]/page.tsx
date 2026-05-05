@@ -1,3 +1,4 @@
+// pagina livro (com estatísticas completas)
 "use client";
 
 import { useEffect, useState } from "react";
@@ -7,7 +8,7 @@ import { Livro } from "@/types/livros";
 import { Avaliacao } from "@/types/avaliacoes";
 import { useUser } from "@/contexts/UserContext";
 import { RouteGuard } from "@/components/RouteGuard";
-import { votar, getVotoUsuario } from "@/services/votos.service";
+import { votar, getVotoUsuario, getVotosDoLivroSeForLivroDoMes } from "@/services/votos.service";
 import { CriarAvaliacaoPayload } from "@/types/requests";
 
 export default function LivroPage() {
@@ -22,11 +23,10 @@ export default function LivroPage() {
   const [loading, setLoading] = useState(true);
   const [jaVotou, setJaVotou] = useState(false);
   const [votando, setVotando] = useState(false);
-
+  const [infoVotosMes, setInfoVotosMes] = useState({ isLivroDoMes: false, totalVotos: 0 });
 
   async function carregarLivro() {
     try {
-
       const data = await apiFetch<Livro>(`/livros/${id}`);
       setLivro(data);
     } catch (err) {
@@ -34,10 +34,8 @@ export default function LivroPage() {
     }
   }
 
-
   async function carregarAvaliacoes() {
     try {
-
       const data = await apiFetch<Avaliacao[]>(`/livros/${id}/avaliacoes`);
       setAvaliacoes(data);
     } catch (err) {
@@ -45,27 +43,15 @@ export default function LivroPage() {
     }
   }
 
-
   async function verificarVotoUsuario() {
     if (!usuario) return;
 
     try {
-
       const votos = await getVotoUsuario(usuario.id);
-
-
-      let votou = false;
-
-      if (Array.isArray(votos)) {
-        votou = votos.some(voto => voto.livro_id === id);
-      } else if (votos && typeof votos === 'object') {
-
-        const votosList = (votos as any).votos || (votos as any).data || [];
-        if (Array.isArray(votosList)) {
-          votou = votosList.some((voto: any) => voto.livro_id === id);
-        }
-      }
-
+      const votou = Array.isArray(votos) 
+        ? votos.some(voto => voto.livro_id === id)
+        : false;
+      
       setJaVotou(votou);
     } catch (err) {
       console.error("Erro ao verificar voto:", err);
@@ -73,6 +59,10 @@ export default function LivroPage() {
     }
   }
 
+  async function verificarStatusLivroMes() {
+    const info = await getVotosDoLivroSeForLivroDoMes(id);
+    setInfoVotosMes(info);
+  }
 
   async function handleVotar() {
     if (!usuario) {
@@ -87,11 +77,15 @@ export default function LivroPage() {
 
     setVotando(true);
     try {
-
       await votar(usuario.id, id);
-
       alert("Voto registrado com sucesso! ✅");
       setJaVotou(true);
+      
+      // Se for o livro do mês, recarregar os votos
+      if (infoVotosMes.isLivroDoMes) {
+        const info = await getVotosDoLivroSeForLivroDoMes(id);
+        setInfoVotosMes(info);
+      }
     } catch (err) {
       console.error("Erro ao votar:", err);
       alert("Erro ao registrar voto. Tente novamente.");
@@ -109,13 +103,13 @@ export default function LivroPage() {
         carregarLivro(),
         carregarAvaliacoes(),
         verificarVotoUsuario(),
+        verificarStatusLivroMes(),
       ]);
       setLoading(false);
     }
 
     carregarTudo();
   }, [id, usuario]);
-
 
   async function criarAvaliacao(e: React.FormEvent) {
     e.preventDefault();
@@ -126,7 +120,6 @@ export default function LivroPage() {
     }
 
     try {
-
       const payload: CriarAvaliacaoPayload = {
         nota,
         comentario,
@@ -140,8 +133,6 @@ export default function LivroPage() {
 
       setComentario("");
       setNota(5);
-
-
       await carregarAvaliacoes();
       alert("Avaliação enviada com sucesso! 📝");
     } catch (err) {
@@ -149,7 +140,6 @@ export default function LivroPage() {
       alert("Erro ao enviar avaliação");
     }
   }
-
 
   const calcularMediaNotas = () => {
     if (avaliacoes.length === 0) return null;
@@ -185,7 +175,6 @@ export default function LivroPage() {
               <p><strong>Gênero:</strong> {livro.genero.nome}</p>
             )}
 
-
             <div style={{
               marginTop: 20,
               padding: 15,
@@ -198,6 +187,7 @@ export default function LivroPage() {
               </h3>
 
               <div style={{ display: "flex", gap: 30, flexWrap: "wrap" }}>
+                {/* Nota média */}
                 <div>
                   <div style={{ fontSize: 28, fontWeight: "bold", color: "#ffc107" }}>
                     {mediaNotas !== null ? mediaNotas.toFixed(1) : "N/A"}
@@ -208,6 +198,7 @@ export default function LivroPage() {
                   </div>
                 </div>
 
+                {/* Total de avaliações */}
                 <div>
                   <div style={{ fontSize: 28, fontWeight: "bold", color: "#28a745" }}>
                     {totalAvaliacoes}
@@ -215,13 +206,31 @@ export default function LivroPage() {
                   <div style={{ fontSize: 14, color: "#666" }}>📝 Total de avaliações</div>
                 </div>
 
+                {/* Votos no mês (apenas se for o livro do mês) */}
+                <div>
+                  <div style={{ 
+                    fontSize: 28, 
+                    fontWeight: "bold", 
+                    color: infoVotosMes.isLivroDoMes ? "#f5a623" : "#adb5bd" 
+                  }}>
+                    {infoVotosMes.isLivroDoMes ? infoVotosMes.totalVotos : "—"}
+                  </div>
+                  <div style={{ fontSize: 14, color: "#666" }}>🗳️ Votos no mês</div>
+                  <div style={{ fontSize: 12, color: "#999" }}>
+                    {infoVotosMes.isLivroDoMes 
+                      ? "Total de votos recebidos neste mês" 
+                      : "Não é o livro do mês atual"}
+                  </div>
+                </div>
+
+                {/* Status do voto do usuário */}
                 <div>
                   <div style={{ fontSize: 28, fontWeight: "bold", color: "#6c757d" }}>
                     {jaVotou ? "✓" : "○"}
                   </div>
-                  <div style={{ fontSize: 14, color: "#666" }}>🗳️ Status do voto</div>
+                  <div style={{ fontSize: 14, color: "#666" }}>🗳️ Seu voto</div>
                   <div style={{ fontSize: 12, color: "#999" }}>
-                    {jaVotou ? "Você já votou" : "Você ainda não votou"}
+                    {jaVotou ? "Você já votou neste livro" : "Você ainda não votou"}
                   </div>
                 </div>
               </div>
@@ -231,9 +240,38 @@ export default function LivroPage() {
 
         <hr style={{ margin: "20px 0" }} />
 
-
+        {/* Seção de votação */}
         <div style={{ marginBottom: 30 }}>
           <h2>🎯 Votar no Livro do Mês</h2>
+          
+          {infoVotosMes.isLivroDoMes && (
+            <div style={{
+              marginBottom: 15,
+              padding: 10,
+              backgroundColor: "#fff3e0",
+              borderRadius: 5,
+              borderLeft: "4px solid #f5a623"
+            }}>
+              <p style={{ margin: 0, fontSize: 14 }}>
+                📊 Este livro é o <strong>Livro do Mês</strong> e já recebeu <strong>{infoVotosMes.totalVotos} votos</strong>!
+              </p>
+            </div>
+          )}
+          
+          {!infoVotosMes.isLivroDoMes && (
+            <div style={{
+              marginBottom: 15,
+              padding: 10,
+              backgroundColor: "#e7f3ff",
+              borderRadius: 5,
+              borderLeft: "4px solid #007bff"
+            }}>
+              <p style={{ margin: 0, fontSize: 14 }}>
+                ℹ️ Votar neste livro ajuda ele a se tornar o <strong>Livro do Mês</strong>!
+              </p>
+            </div>
+          )}
+          
           <button
             onClick={handleVotar}
             disabled={jaVotou || votando}
@@ -241,7 +279,7 @@ export default function LivroPage() {
               padding: "12px 24px",
               fontSize: 16,
               cursor: (jaVotou || votando) ? "not-allowed" : "pointer",
-              backgroundColor: jaVotou ? "#6c757d" : "#007bff",
+              backgroundColor: jaVotou ? "#6c757d" : (infoVotosMes.isLivroDoMes ? "#f5a623" : "#007bff"),
               color: "white",
               border: "none",
               borderRadius: 5,
@@ -251,13 +289,13 @@ export default function LivroPage() {
             {votando ? "💫 Processando..." : jaVotou ? "✓ Voto confirmado" : "⭐ Votar neste livro"}
           </button>
           <p style={{ fontSize: 14, color: "#666", marginTop: 8 }}>
-            O livro mais votado do mês será destaque no ranking!
+            O livro mais votado do mês será destaque no ranking e como Livro do Mês!
           </p>
         </div>
 
         <hr style={{ margin: "20px 0" }} />
 
-
+        {/* Seção de avaliação */}
         <div style={{ marginBottom: 30 }}>
           <h2>✍️ Avaliar livro</h2>
           <form onSubmit={criarAvaliacao} style={{ display: "flex", flexDirection: "column", gap: 12 }}>
@@ -317,7 +355,7 @@ export default function LivroPage() {
 
         <hr style={{ margin: "20px 0" }} />
 
-
+        {/* Lista de avaliações */}
         <div>
           <h2>💬 Avaliações ({totalAvaliacoes})</h2>
 

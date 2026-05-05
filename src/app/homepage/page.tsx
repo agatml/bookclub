@@ -1,23 +1,34 @@
+// homepage (versão atualizada com localStorage)
 "use client";
 
 import { useEffect, useState, useCallback, useRef } from "react";
 import { useUser } from "@/contexts/UserContext";
 import { getFeed } from "@/services/feed.service";
-import { getRanking } from "@/services/ranking.service";
-import { getLivroDoMes, votar } from "@/services/votos.service";
+import { getLivroDoMes, votar, getVotoLocalStorage } from "@/services/votos.service";
 import Link from "next/link";
 import { RouteGuard } from "@/components/RouteGuard";
+import { getRanking, RankingPorGenero } from "@/services/ranking.service";
+import BookImage from "@/components/BookImage"
 
 export default function HomePage() {
   const { usuario, loading } = useUser();
 
   const [feed, setFeed] = useState<any[]>([]);
-  const [ranking, setRanking] = useState<any[]>([]);
+  const [ranking, setRanking] = useState<RankingPorGenero[]>([]);
   const [livroMes, setLivroMes] = useState<any>(null);
   const [loadingData, setLoadingData] = useState(true);
   const [votando, setVotando] = useState<string | null>(null);
+  const [jaVotouLivroMes, setJaVotouLivroMes] = useState(false);
 
   const dadosCarregados = useRef(false);
+
+
+
+  // Verificar se já votou no livro do mês via localStorage
+  const verificarVotoLocalStorage = useCallback((livroDoMesId: string) => {
+    const votoSalvo = getVotoLocalStorage();
+    setJaVotouLivroMes(votoSalvo === livroDoMesId);
+  }, []);
 
   const carregarDados = useCallback(async (recarregarRanking = true) => {
     if (!usuario) return;
@@ -33,14 +44,15 @@ export default function HomePage() {
       setFeed(Array.isArray(feedData) ? feedData : []);
       setLivroMes(livroMesData || null);
 
+      // Verificar localStorage para o livro do mês
+      if (livroMesData?.livro?.id) {
+        verificarVotoLocalStorage(livroMesData.livro.id);
+      }
+
       if (recarregarRanking) {
         const rankingData = await getRanking();
-
-        const rankingFiltrado = Array.isArray(rankingData)
-          ? rankingData.filter(livro => livro && livro.titulo && livro.titulo !== "")
-          : [];
-        setRanking(rankingFiltrado);
-        console.log("Ranking filtrado:", rankingFiltrado.length);
+        setRanking(rankingData);
+        console.log("Ranking carregado:", rankingData.length, "gêneros");
       }
 
     } catch (error) {
@@ -48,7 +60,7 @@ export default function HomePage() {
     } finally {
       setLoadingData(false);
     }
-  }, [usuario]);
+  }, [usuario, verificarVotoLocalStorage]);
 
   useEffect(() => {
     if (usuario && !loading && !dadosCarregados.current) {
@@ -57,9 +69,15 @@ export default function HomePage() {
     }
   }, [usuario, loading, carregarDados]);
 
-  async function handleVotar(livroId: string) {
+  async function handleVotar(livroId: string, isLivroDoMes: boolean = false) {
     if (!usuario) {
       alert("Faça login para votar!");
+      return;
+    }
+
+    // Se for o livro do mês e já votou, impedir
+    if (isLivroDoMes && jaVotouLivroMes) {
+      alert("Você já votou no livro do mês este mês!");
       return;
     }
 
@@ -67,6 +85,13 @@ export default function HomePage() {
     try {
       console.log("Votando:", livroId);
       await votar(usuario.id, livroId);
+
+      // Salvar no localStorage se for o livro do mês
+      if (isLivroDoMes) {
+        localStorage.setItem("voto-do-mes", livroId);
+        setJaVotouLivroMes(true);
+      }
+
       alert("Voto registrado com sucesso! 🎉");
 
       const [novoRanking, novoLivroMes] = await Promise.all([
@@ -74,16 +99,22 @@ export default function HomePage() {
         getLivroDoMes(),
       ]);
 
-
-      const rankingFiltrado = Array.isArray(novoRanking)
-        ? novoRanking.filter(livro => livro && livro.titulo && livro.titulo !== "")
-        : [];
-      setRanking(rankingFiltrado);
+      setRanking(novoRanking);
       setLivroMes(novoLivroMes || null);
 
-    } catch (error) {
+    } catch (error: any) {
       console.error("Erro ao votar:", error);
-      alert("Erro ao registrar voto. Tente novamente.");
+
+      // Se o erro for de voto duplicado, sincronizar localStorage
+      if (error?.message?.includes("já votou") || error?.status === 409) {
+        if (isLivroDoMes) {
+          localStorage.setItem("voto-do-mes", livroId);
+          setJaVotouLivroMes(true);
+        }
+        alert("Você já havia votado neste livro! Voto confirmado.");
+      } else {
+        alert("Erro ao registrar voto. Tente novamente.");
+      }
     } finally {
       setVotando(null);
     }
@@ -101,7 +132,6 @@ export default function HomePage() {
     return <p>Usuário não autenticado</p>;
   }
 
-
   const livroDoMesObj = livroMes?.livro || livroMes;
   const livroDoMesId = livroDoMesObj?.id;
   const livroDoMesTitulo = livroDoMesObj?.titulo;
@@ -110,42 +140,53 @@ export default function HomePage() {
   const livroDoMesGenero = livroDoMesObj?.genero?.nome;
   const livroDoMesVotos = livroMes?.total_votos || 0;
 
+  const botaoVotarDesabilitado = jaVotouLivroMes || votando === livroDoMesId;
+
   return (
     <RouteGuard>
       <main style={{ padding: 20, maxWidth: 1200, margin: "0 auto" }}>
         <h1>Olá, {usuario.nome} 👋</h1>
 
-
-
-
         {livroDoMesObj && (
           <>
             <h2>📖 Livro do mês</h2>
             <div style={card}>
-              <img
-                src={livroDoMesCapa || "https://via.placeholder.com/120x160"}
+
+
+
+              <BookImage
+                src={livroDoMesCapa}
+                title={livroDoMesTitulo || "Livro"}
                 width={120}
                 height={160}
-                alt={livroDoMesTitulo || "Livro"}
-                style={{ borderRadius: 8, objectFit: 'cover' }}
-                onError={(e) => {
-                  (e.target as HTMLImageElement).src = "https://via.placeholder.com/120x160";
-                }}
+                style={{ marginBottom: 10, cursor: 'pointer', borderRadius: 8 }}
               />
               <div>
                 <h3>{livroDoMesTitulo || "Sem título"}</h3>
                 <p><strong>Autor:</strong> {livroDoMesAutor || "Desconhecido"}</p>
                 <p><strong>Gênero:</strong> {livroDoMesGenero || "Não definido"}</p>
                 <p><strong>Total de votos no mês:</strong> {livroDoMesVotos}</p>
+
+                {jaVotouLivroMes && (
+                  <p style={{ color: "#28a745", fontSize: 14, marginBottom: 8 }}>
+                    ✅ Você já votou no livro do mês este mês!
+                  </p>
+                )}
+
                 <button
-                  onClick={() => handleVotar(livroDoMesId)}
-                  disabled={votando === livroDoMesId}
+                  onClick={() => handleVotar(livroDoMesId, true)}
+                  disabled={botaoVotarDesabilitado}
                   style={{
                     ...votarButton,
-                    opacity: votando === livroDoMesId ? 0.6 : 1
+                    opacity: botaoVotarDesabilitado ? 0.6 : 1,
+                    backgroundColor: jaVotouLivroMes ? "#6c757d" : "#f5a623"
                   }}
                 >
-                  {votando === livroDoMesId ? "Votando..." : "⭐ Votar neste livro"}
+                  {votando === livroDoMesId
+                    ? "Votando..."
+                    : jaVotouLivroMes
+                      ? "✓ Voto realizado"
+                      : "⭐ Votar neste livro"}
                 </button>
               </div>
             </div>
@@ -154,9 +195,7 @@ export default function HomePage() {
 
         <hr style={{ margin: "30px 0" }} />
 
-
         <h2>🏆 Ranking de Livros</h2>
-
 
         {ranking.length === 0 ? (
           <div style={{ textAlign: 'center', padding: 40, backgroundColor: '#f9f9f9', borderRadius: 8 }}>
@@ -164,81 +203,66 @@ export default function HomePage() {
             <p style={{ fontSize: 14, color: '#666' }}>Os livros com mais votos aparecerão aqui!</p>
           </div>
         ) : (
-          <div style={grid}>
-            {ranking.map((livro: any, index: number) => (
-              <div key={livro.id} style={rankingCard}>
-                <div style={medalhaContainer}>
-                  <span style={medalhaStyle(index + 1)}>
-                    {index === 0 ? "🥇" : index === 1 ? "🥈" : index === 2 ? "🥉" : `${index + 1}º`}
-                  </span>
-                </div>
-                <Link href={`/livros/${livro.id}`} style={{ textDecoration: 'none' }}>
-
-                  {livro.capa_url && (
-                    <img
-                      src={livro.capa_url}
-                      width={100}
-                      height={140}
-                      alt={livro.titulo}
-                      style={{
-                        borderRadius: 6,
-                        objectFit: 'cover',
-                        marginBottom: 10,
-                        cursor: 'pointer'
-                      }}
-                    />
-                  )}
-                  {!livro.capa_url && (
-                    <div style={{
-                      width: 100,
-                      height: 140,
-                      backgroundColor: '#f0f0f0',
-                      borderRadius: 6,
-                      marginBottom: 10,
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      fontSize: 12,
-                      color: '#999'
-                    }}>
-                      📚
+          ranking.map((genero) => (
+            <div key={genero.genero_id} style={{ marginBottom: 40 }}>
+              <h3 style={{
+                fontSize: 24,
+                color: '#333',
+                borderBottom: '3px solid #f5a623',
+                paddingBottom: 8,
+                marginBottom: 20
+              }}>
+                🏷️ {genero.genero_nome}
+              </h3>
+              <div style={grid}>
+                {genero.livros.map((livro) => (
+                  <div key={livro.id} style={rankingCard}>
+                    <div style={medalhaContainer}>
+                      <span style={medalhaStyle(livro.posicao)}>
+                        {livro.posicao === 1 ? "🥇" : livro.posicao === 2 ? "🥈" : livro.posicao === 3 ? "🥉" : `${livro.posicao}º`}
+                      </span>
                     </div>
-                  )}
-                  <h3 style={{ fontSize: 14, margin: "8px 0 4px", color: "#333" }}>
-                    {livro.titulo}
-                  </h3>
-                  <p style={{ fontSize: 12, color: "#666", margin: 0 }}>
-                    {livro.autor}
-                  </p>
-                  <p style={{ fontSize: 12, color: "#999", margin: "4px 0 0" }}>
-                    {livro.genero_nome}
-                  </p>
-                  <p style={{
-                    fontSize: 13,
-                    color: "#f5a623",
-                    marginTop: 8,
-                    fontWeight: "bold"
-                  }}>
-                    ⭐ {livro.total_votos} {livro.total_votos === 1 ? 'voto' : 'votos'}
-                  </p>
-                </Link>
-                <button
-                  onClick={() => handleVotar(livro.id)}
-                  disabled={votando === livro.id}
-                  style={{
-                    ...smallVotarButton,
-                    opacity: votando === livro.id ? 0.6 : 1
-                  }}
-                >
-                  {votando === livro.id ? "..." : "Votar"}
-                </button>
+                    <Link href={`/livros/${livro.id}`} style={{ textDecoration: 'none' }}>
+                      <BookImage
+                        src={livro.capa_url}
+                        title={livro.titulo}
+                        width={100}
+                        height={140}
+                        style={{ marginBottom: 10, cursor: 'pointer', borderRadius: 6 }}
+                      />
+                      <h3 style={{ fontSize: 14, margin: "8px 0 4px", color: "#333" }}>
+                        {livro.titulo}
+                      </h3>
+                      <p style={{ fontSize: 12, color: "#666", margin: 0 }}>
+                        {livro.autor}
+                      </p>
+                      <p style={{
+                        fontSize: 13,
+                        color: "#f5a623",
+                        marginTop: 8,
+                        fontWeight: "bold"
+                      }}>
+                        ⭐ {livro.total_votos} {livro.total_votos === 1 ? 'voto' : 'votos'}
+                      </p>
+                    </Link>
+                    <button
+                      onClick={() => handleVotar(livro.id, false)}
+                      disabled={votando === livro.id}
+                      style={{
+                        ...smallVotarButton,
+                        opacity: votando === livro.id ? 0.6 : 1
+                      }}
+                    >
+                      {votando === livro.id ? "..." : "Votar"}
+                    </button>
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
+            </div>
+          ))
         )}
 
         <hr style={{ margin: "30px 0" }} />
-
 
         <h2>📝 Avaliações recentes ({feed.length})</h2>
 
@@ -271,6 +295,8 @@ export default function HomePage() {
     </RouteGuard>
   );
 }
+
+
 
 const grid = {
   display: "grid",
