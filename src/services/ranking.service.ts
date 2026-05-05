@@ -4,12 +4,12 @@ export async function getRanking() {
   try {
     const response = await apiFetch<any>("/ranking?limit=20");
     console.log("Ranking API response COMPLETO:", JSON.stringify(response, null, 2));
-    
-   
+
+
     if (Array.isArray(response)) {
-      
+
       const todosLivros = [];
-      
+
       for (const genero of response) {
         if (genero.livros && Array.isArray(genero.livros)) {
           for (const item of genero.livros) {
@@ -28,14 +28,14 @@ export async function getRanking() {
           }
         }
       }
-      
-      
+
+
       todosLivros.sort((a, b) => b.total_votos - a.total_votos);
-      
+
       console.log("Livros extraídos do ranking:", todosLivros);
       return todosLivros;
     }
-    
+
     return [];
   } catch (error) {
     console.error("Erro no ranking:", error);

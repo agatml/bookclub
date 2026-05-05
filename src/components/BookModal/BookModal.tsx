@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { apiFetch } from "@/services/api";
 import { Genero } from "@/types/generos";
 import { useUser } from "@/contexts/UserContext";
+import { CriarLivroPayload } from "@/types/requests";
 
 type Props = {
   fechar: () => void;
@@ -42,20 +43,20 @@ export default function BookModal({ fechar, onCreated }: Props) {
 
     e.preventDefault();
 
-    await apiFetch("/livros",
-      {
+    const payload: CriarLivroPayload = {
+      titulo,
+      autor,
+      genero_id,
+      sinopse,
+      capa_url,
+      ano_publicacao: Number(ano),
+      cadastrado_por: usuario?.nome ?? "anonimo",
+    };
 
-        method: "POST",
-        body: JSON.stringify({
-          titulo,
-          autor,
-          genero_id,
-          sinopse,
-          capa_url,
-          ano_publicacao: Number(ano),
-          cadastrado_por: usuario?.nome ?? "anonimo",
-        }),
-      });
+    await apiFetch("/livros", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    });
 
     onCreated();
     fechar();

@@ -1,4 +1,4 @@
-// components/RouteGuard.tsx
+
 "use client";
 
 import { useAuthGuard } from "@/hooks/useAuthGuard";

@@ -8,7 +8,6 @@
   flex-direction: column;
 }
 
-
 .logo {
   font-size: 26px;
   font-weight: bold;
@@ -18,7 +17,6 @@
   padding-bottom: 10px;
   border-bottom: 2px solid #ddd;
 }
-
 
 .nav {
   display: flex;

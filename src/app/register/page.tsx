@@ -5,10 +5,11 @@ import { useRouter } from "next/navigation";
 import { apiFetch } from "@/services/api";
 import { Usuario } from "@/types/usuario";
 import { useUser } from "@/contexts/UserContext";
+import { CriarUsuarioPayload } from "@/types/requests";
 
 export default function RegisterPage() {
   const router = useRouter();
-const { login } = useUser();
+  const { login } = useUser();
   const [nome, setNome] = useState("");
   const [avatarUrl, setAvatarUrl] = useState("");
 
@@ -16,13 +17,15 @@ const { login } = useUser();
     e.preventDefault();
 
     try {
+      const payload: CriarUsuarioPayload = {
+        nome,
+        avatar_url: avatarUrl || null,
+      };
+
       const user = await apiFetch<Usuario>("/usuarios", {
         method: "POST",
-        body: JSON.stringify({
-          nome,
-          avatar_url: avatarUrl || null,
-        }),
-      });;
+        body: JSON.stringify(payload),
+      });
 
 
       login(user);;

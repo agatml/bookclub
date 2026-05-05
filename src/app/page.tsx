@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import "@/styles/globals.css";
-
+import { CriarUsuarioPayload } from "@/types/requests";
 import { apiFetch } from "@/services/api";
 import { Usuario } from "@/types/usuario";
 import { useUser } from "@/contexts/UserContext";
@@ -26,26 +26,28 @@ export default function RegisterPage() {
   if (loading) return null;
 
   async function handleRegister(e: React.FormEvent) {
-  e.preventDefault();
+    e.preventDefault();
 
-  if (!nome.trim()) return;
+    if (!nome.trim()) return;
 
-  try {
-    const novoUsuario = await apiFetch<Usuario>("/usuarios", {
-      method: "POST",
-      body: JSON.stringify({
+    try {
+      const payload: CriarUsuarioPayload = {
         nome,
         avatar_url: null,
-      }),
-    });
+      };
 
-    await login(novoUsuario);
+      const novoUsuario = await apiFetch<Usuario>("/usuarios", {
+        method: "POST",
+        body: JSON.stringify(payload),
+      });
 
-  } catch (error) {
-    console.error("Erro:", error);
-    alert("Erro ao criar usuário");
+      await login(novoUsuario);
+
+    } catch (error) {
+      console.error("Erro:", error);
+      alert("Erro ao criar usuário");
+    }
   }
-}
 
   return (
     <main

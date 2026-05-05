@@ -10,4 +10,5 @@ export type Avaliacao = {
     nome: string;
     avatar_url: string;
   };
+  data_criacao?: string;
 };

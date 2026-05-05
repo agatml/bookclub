@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { apiFetch } from "@/services/api";
-
+import { CriarGeneroPayload } from "@/types/requests";
 
 type Props = {
   fechar: () => void;
@@ -16,12 +16,14 @@ export default function GeneroModal({ fechar, onCreated }: Props) {
   async function criarGenero(e: React.FormEvent) {
     e.preventDefault();
 
+    const payload: CriarGeneroPayload = {
+      nome,
+      descricao,
+    };
+
     await apiFetch("/generos", {
       method: "POST",
-      body: JSON.stringify({
-        nome,
-        descricao,
-      }),
+      body: JSON.stringify(payload),
     });
 
     onCreated();

@@ -1,5 +1,6 @@
 import { apiFetch } from "./api";
 import { Livro } from "@/types/livros";
+import { CriarVotoPayload } from "@/types/requests";
 
 export function getLivroDoMes() {
   return apiFetch<Livro>("/votos/mes-atual");
@@ -11,11 +12,13 @@ export function getVotoUsuario(usuarioId: string) {
 
 
 export async function votar(usuario_id: string, livro_id: string) {
+  const payload: CriarVotoPayload = {
+    livro_id,
+    usuario_id,
+  };
+
   return apiFetch("/votos", {
     method: "POST",
-    body: JSON.stringify({
-      livro_id: livro_id,  
-      usuario_id: usuario_id,  
-    }),
+    body: JSON.stringify(payload),
   });
 }

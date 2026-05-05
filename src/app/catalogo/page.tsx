@@ -55,79 +55,79 @@ export default function Catalogo() {
   return (
     <RouteGuard>
       <main style={{ padding: 20 }}>
-    
-      <h1>Catálogo</h1>
 
-      <div style={{ marginBottom: 20 }}>
-        <button onClick={() => setAbrirModal(true)}>+ Livro</button>
+        <h1>Catálogo</h1>
 
-        <button
-          style={{ marginLeft: 10 }}
-          onClick={() => setAbrirGenero(true)}
+        <div style={{ marginBottom: 20 }}>
+          <button onClick={() => setAbrirModal(true)}>+ Livro</button>
+
+          <button
+            style={{ marginLeft: 10 }}
+            onClick={() => setAbrirGenero(true)}
+          >
+            + Novo Gênero
+          </button>
+        </div>
+
+        <input
+          type="text"
+          placeholder="Buscar por título ou autor..."
+          value={busca}
+          onChange={(e) => setBusca(e.target.value)}
+          style={{
+            padding: 10,
+            width: "100%",
+            maxWidth: 400,
+            marginBottom: 20,
+          }}
+        />
+
+        <select
+          value={generoSelecionado}
+          onChange={(e) => setGeneroSelecionado(e.target.value)}
         >
-          + Novo Gênero
-        </button>
-      </div>
+          <option value="">Todos os gêneros</option>
 
-      <input
-        type="text"
-        placeholder="Buscar por título ou autor..."
-        value={busca}
-        onChange={(e) => setBusca(e.target.value)}
-        style={{
-          padding: 10,
-          width: "100%",
-          maxWidth: 400,
-          marginBottom: 20,
-        }}
-      />
+          {generos.map((g) => (
+            <option key={g.id} value={g.id}>
+              {g.nome}
+            </option>
+          ))}
+        </select>
 
-      <select
-        value={generoSelecionado}
-        onChange={(e) => setGeneroSelecionado(e.target.value)}
-      >
-        <option value="">Todos os gêneros</option>
+        <div className="grid">
+          {livrosFiltrados.map((livro) => (
+            <BookCard
+              key={livro.id}
+              livro={livro}
+              generoNome={generosMap[livro.genero.id]}
+            />
+          ))}
+        </div>
 
-        {generos.map((g) => (
-          <option key={g.id} value={g.id}>
-            {g.nome}
-          </option>
-        ))}
-      </select>
 
-      <div className="grid">
-        {livrosFiltrados.map((livro) => (
-          <BookCard
-            key={livro.id}
-            livro={livro}
-            generoNome={generosMap[livro.genero.id]}
+        {abrirModal && (
+          <BookModal
+            fechar={() => setAbrirModal(false)}
+            onCreated={() => {
+              carregarLivros();
+              setAbrirModal(false);
+            }}
           />
-        ))}
-      </div>
+        )}
 
-      
-      {abrirModal && (
-        <BookModal
-          fechar={() => setAbrirModal(false)}
-          onCreated={() => {
-            carregarLivros();
-            setAbrirModal(false);
-          }}
-        />
-      )}
 
-      
-      {abrirGenero && (
-        <GeneroModal
-          fechar={() => setAbrirGenero(false)}
-          onCreated={() => {
-            carregarGeneros();
-            setAbrirGenero(false);
-          }}
-        />
-      )}
-   
-    </main>
+        {abrirGenero && (
+          <GeneroModal
+            fechar={() => setAbrirGenero(false)}
+            onCreated={() => {
+              carregarGeneros();
+              setAbrirGenero(false);
+            }}
+          />
+        )}
+
+      </main>
     </RouteGuard>
   );
 }

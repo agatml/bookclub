@@ -11,7 +11,7 @@ export interface Livro {
   genero: Genero;
   capa_url: string;
   ano_publicacao: number;
-  media_notas: number;
-  total_avaliacoes: number;
-  total_votos_mes: number;
+  media_avaliacoes?: number;
+  total_avaliacoes?: number;
+  votos_mes?: number;
 }

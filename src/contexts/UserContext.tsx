@@ -1,4 +1,4 @@
-// contexts/UserContext.tsx
+
 "use client";
 
 import { createContext, useContext, useEffect, useState } from "react";
@@ -29,10 +29,10 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
 
       try {
         const user = JSON.parse(storedUser);
-        
+
         // Valida se o usuário ainda existe na API
         const usuarioExistente = await verificarUsuarioExistente(user.id);
-        
+
         if (usuarioExistente) {
           setUsuario(usuarioExistente);
           // Atualiza o localStorage com dados mais recentes
