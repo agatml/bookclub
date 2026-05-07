@@ -24,7 +24,7 @@ export default function HomePage() {
 
 
 
-  // Verificar se já votou no livro do mês via localStorage
+  
   const verificarVotoLocalStorage = useCallback((livroDoMesId: string) => {
     const votoSalvo = getVotoLocalStorage();
     setJaVotouLivroMes(votoSalvo === livroDoMesId);
@@ -44,7 +44,7 @@ export default function HomePage() {
       setFeed(Array.isArray(feedData) ? feedData : []);
       setLivroMes(livroMesData || null);
 
-      // Verificar localStorage para o livro do mês
+      
       if (livroMesData?.livro?.id) {
         verificarVotoLocalStorage(livroMesData.livro.id);
       }
@@ -75,7 +75,7 @@ export default function HomePage() {
       return;
     }
 
-    // Se for o livro do mês e já votou, impedir
+    
     if (isLivroDoMes && jaVotouLivroMes) {
       alert("Você já votou no livro do mês este mês!");
       return;
@@ -86,13 +86,13 @@ export default function HomePage() {
       console.log("Votando:", livroId);
       await votar(usuario.id, livroId);
 
-      // Salvar no localStorage se for o livro do mês
+      
       if (isLivroDoMes) {
         localStorage.setItem("voto-do-mes", livroId);
         setJaVotouLivroMes(true);
       }
 
-      alert("Voto registrado com sucesso! 🎉");
+      alert("Voto registrado com sucesso!");
 
       const [novoRanking, novoLivroMes] = await Promise.all([
         getRanking(),
@@ -105,7 +105,7 @@ export default function HomePage() {
     } catch (error: any) {
       console.error("Erro ao votar:", error);
 
-      // Se o erro for de voto duplicado, sincronizar localStorage
+     
       if (error?.message?.includes("já votou") || error?.status === 409) {
         if (isLivroDoMes) {
           localStorage.setItem("voto-do-mes", livroId);
@@ -145,11 +145,11 @@ export default function HomePage() {
   return (
     <RouteGuard>
       <main style={{ padding: 20, maxWidth: 1200, margin: "0 auto" }}>
-        <h1>Olá, {usuario.nome} 👋</h1>
+        <h1>Bem-vindo(a), {usuario.nome}.</h1>
 
         {livroDoMesObj && (
           <>
-            <h2>📖 Livro do mês</h2>
+            <h2>Livro do mês</h2>
             <div style={card}>
 
 
@@ -199,7 +199,7 @@ export default function HomePage() {
 
         {ranking.length === 0 ? (
           <div style={{ textAlign: 'center', padding: 40, backgroundColor: '#f9f9f9', borderRadius: 8 }}>
-            <p>📊 Nenhum livro no ranking ainda.</p>
+            <p>Nenhum livro no ranking ainda.</p>
             <p style={{ fontSize: 14, color: '#666' }}>Os livros com mais votos aparecerão aqui!</p>
           </div>
         ) : (
@@ -264,7 +264,7 @@ export default function HomePage() {
 
         <hr style={{ margin: "30px 0" }} />
 
-        <h2>📝 Avaliações recentes ({feed.length})</h2>
+        <h2>Avaliações recentes ({feed.length})</h2>
 
         {feed.length === 0 ? (
           <p>Nenhuma avaliação ainda.</p>

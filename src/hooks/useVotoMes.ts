@@ -58,10 +58,10 @@ export function useVotoMes(livroId: string | undefined, usuarioId: string | unde
     if (!livroId) return false;
 
     try {
-      // Executar o voto no backend
+     
       await votarFn();
       
-      // Salvar no localStorage após voto bem-sucedido
+      
       localStorage.setItem(STORAGE_KEY, livroId);
       setJaVotou(true);
       setVotoConfirmado(true);

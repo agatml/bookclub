@@ -14,7 +14,7 @@ interface BookImageProps {
 export default function BookImage({ src, title, width, height, style }: BookImageProps) {
   const [hasError, setHasError] = useState(false);
 
-  // Se não tem src ou já deu erro, mostra fallback
+
   if (!src || hasError) {
     return (
       <div

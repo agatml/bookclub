@@ -50,18 +50,38 @@ export default function RegisterPage() {
           value={nome}
           onChange={(e) => setNome(e.target.value)}
           required
+          style={{
+            padding: 5,
+            width: "100%",
+            maxWidth: 300,
+            marginBottom: 20,
+          }}
         />
 
         <input
           placeholder="URL do avatar (opcional)"
           value={avatarUrl}
           onChange={(e) => setAvatarUrl(e.target.value)}
+          style={{
+            padding: 5,
+            width: "100%",
+            maxWidth: 300,
+            marginBottom: 20,
+          }}
         />
 
-        <button type="submit">
+        <button type="submit"
+        style={{
+            padding: 5,
+            width: "100%",
+            maxWidth: 312,
+            marginBottom: 20,
+          }}>
           Criar conta
         </button>
       </form>
     </main>
   );
 }
+
+

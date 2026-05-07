@@ -25,7 +25,7 @@ export function useAuthGuard() {
 
       if (!usuarioExistente) {
 
-        console.warn("Usuário inválido ou deletado da API");
+        console.warn("Usuário inválido ou deletado.");
         logout();
         router.replace("/");
       } else {

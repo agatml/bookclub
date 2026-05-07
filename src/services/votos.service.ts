@@ -1,4 +1,4 @@
-// votos.service.ts
+
 import { apiFetch } from "./api";
 import { Livro } from "@/types/livros";
 import { CriarVotoPayload } from "@/types/requests";
@@ -39,14 +39,14 @@ export async function votar(usuario_id: string, livro_id: string) {
 export async function getVotosDoLivroSeForLivroDoMes(livroId: string): Promise<{ isLivroDoMes: boolean; totalVotos: number }> {
   try {
     const livroDoMes = await getLivroDoMes();
-    
+
     if (livroDoMes && livroDoMes.livro && livroDoMes.livro.id === livroId) {
       return {
         isLivroDoMes: true,
         totalVotos: livroDoMes.total_votos || 0
       };
     }
-    
+
     return {
       isLivroDoMes: false,
       totalVotos: 0
@@ -60,12 +60,12 @@ export async function getVotosDoLivroSeForLivroDoMes(livroId: string): Promise<{
   }
 }
 
-// Função para limpar o voto do localStorage (útil para debug/testing)
+
 export function limparVotoLocalStorage() {
   localStorage.removeItem("voto-do-mes");
 }
 
-// Função para obter o voto salvo no localStorage
+
 export function getVotoLocalStorage(): string | null {
   return localStorage.getItem("voto-do-mes");
 }

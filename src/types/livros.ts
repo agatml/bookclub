@@ -1,3 +1,4 @@
+
 export interface Genero {
   id: string;
   nome: string;
@@ -11,6 +12,7 @@ export interface Livro {
   genero: Genero;
   capa_url: string;
   ano_publicacao: number;
+  sinopse?: string;  
   media_avaliacoes?: number;
   total_avaliacoes?: number;
   votos_mes?: number;
